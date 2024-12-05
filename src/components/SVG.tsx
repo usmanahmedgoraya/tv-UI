@@ -74,7 +74,7 @@ export default function TVPlayer() {
       position: 'absolute' as const,
       top: "-3px",
       left: 0,
-      width: '68%',
+      width: isSmallScreen?"31%":'68%',
       height: '100%',
       pointerEvents: 'none' as const,
     },
