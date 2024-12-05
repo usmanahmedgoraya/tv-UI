@@ -21,19 +21,30 @@ export default function TVPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentVideo, setCurrentVideo] = useState(0)
-  const [volume, setVolume] = useState(0.5)
   const [glitch, setGlitch] = useState(false)
   const [blueScreen, setBlueScreen] = useState(false)
+  const [isFullScreen, setIsFullScreen] = useState(false)
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const width = window.innerWidth
+      setIsSmallScreen(width >= 768 && width <= 830)
+    }
+    updateScreenSize()
+    window.addEventListener('resize', updateScreenSize)
+    return () => window.removeEventListener('resize', updateScreenSize)
+  }, [])
 
   const styles = {
     tvContainer: {
       position: 'absolute' as const,
       zIndex: 99999,
-      left: "30.55rem",
-      top: "133px",
-      transform: "scaleX(1.42) scaleY(1.435)",
-      width: '25%',
+      left: isSmallScreen ? '31.8rem' : "30.71rem",
+      top: isSmallScreen?"115px":"133px",
+      transform: isSmallScreen?"scaleX(1.32) scaleY(1.335)":"scaleX(1.42) scaleY(1.435)",
       fontFamily: 'Arial, sans-serif',
+      width: isSmallScreen ? '100%' : 'auto',
     },
     screenContainer: {
       width: '71%',
@@ -55,23 +66,15 @@ export default function TVPlayer() {
       height: '100%',
       objectFit: 'cover' as const,
       display: blueScreen ? 'none' : 'block',
-      clipPath: "path('M6.84 5.52s64.76-5.56 83-4.88c1.63.06 3.26.09 4.89.07 13.86-.18 71-.75 89.13 1.33l46.52 3.24s6.46-.86 6.68 13.16c0 0 6 80.06 3.52 99.51l-4.2 44.7a18.25 18.25 0 0 0-.57 4.3c-.15 2.37-1.82 7.27-12.83 7.65-2 .07-10.52.63-12.46.76-17.08 1.12-97.94 6.36-152.22 2.52L9.61 173.14s-6.2 1.52-7.06-30.76c0-.69 0-1.39-.05-2.09-.12-2.57 0-4.73-.15-7.13-1.11-13.93-2.87-58.23-1-89.48l1.42-24.94c.13-2.19.23-4.38.17-6.57-.1-1.81.58-5.97 3.9-6.65Z')",
-    },
-    blueScreen: {
-      position: 'absolute' as const,
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#0000FF',
-      display: blueScreen ? 'block' : 'none',
-      clipPath: "path('M6.84 5.52s64.76-5.56 83-4.88c1.63.06 3.26.09 4.89.07 13.86-.18 71-.75 89.13 1.33l46.52 3.24s6.46-.86 6.68 13.16c0 0 6 80.06 3.52 99.51l-4.2 44.7a18.25 18.25 0 0 0-.57 4.3c-.15 2.37-1.82 7.27-12.83 7.65-2 .07-10.52.63-12.46.76-17.08 1.12-97.94 6.36-152.22 2.52L9.61 173.14s-6.2 1.52-7.06-30.76c0-.69 0-1.39-.05-2.09-.12-2.57 0-4.73-.15-7.13-1.11-13.93-2.87-58.23-1-89.48l1.42-24.94c.13-2.19.23-4.38.17-6.57-.1-1.81.58-5.97 3.9-6.65Z')",
+      clipPath: isFullScreen
+        ? 'none'
+        : "path('M6.84 5.52s64.76-5.56 83-4.88c1.63.06 3.26.09 4.89.07 13.86-.18 71-.75 89.13 1.33l46.52 3.24s6.46-.86 6.68 13.16c0 0 6 80.06 3.52 99.51l-4.2 44.7a18.25 18.25 0 0 0-.57 4.3c-.15 2.37-1.82 7.27-12.83 7.65-2 .07-10.52.63-12.46.76-17.08 1.12-97.94 6.36-152.22 2.52L9.61 173.14s-6.2 1.52-7.06-30.76c0-.69 0-1.39-.05-2.09-.12-2.57 0-4.73-.15-7.13-1.11-13.93-2.87-58.23-1-89.48l1.42-24.94c.13-2.19.23-4.38.17-6.57-.1-1.81.58-5.97 3.9-6.65Z')",
     },
     tvOutline: {
       position: 'absolute' as const,
       top: "-3px",
       left: 0,
-      width: '100%',
+      width: '68%',
       height: '100%',
       pointerEvents: 'none' as const,
     },
@@ -92,12 +95,20 @@ export default function TVPlayer() {
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
 
+    const handleFullScreenChange = () => {
+      setIsFullScreen(
+        document.fullscreenElement === video
+      )
+    }
+
     video.addEventListener('play', handlePlay)
     video.addEventListener('pause', handlePause)
+    document.addEventListener('fullscreenchange', handleFullScreenChange)
 
     return () => {
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
+      document.removeEventListener('fullscreenchange', handleFullScreenChange)
     }
   }, [])
 
@@ -114,23 +125,22 @@ export default function TVPlayer() {
             style={styles.video}
             controls
           />
-          <div style={styles.blueScreen} />
         </div>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 241.62 179.76"
-          style={{ ...styles.tvOutline, ...styles.svgContainer }}
-
-        >
-          <path
-            d="M6.84 5.52s64.76-5.56 83-4.88c1.63.06 3.26.09 4.89.07 13.86-.18 71-.75 89.13 1.33l46.52 3.24s6.46-.86 6.68 13.16c0 0 6 80.06 3.52 99.51l-4.2 44.7a18.25 18.25 0 0 0-.57 4.3c-.15 2.37-1.82 7.27-12.83 7.65-2 .07-10.52.63-12.46.76-17.08 1.12-97.94 6.36-152.22 2.52L9.61 173.14s-6.2 1.52-7.06-30.76c0-.69 0-1.39-.05-2.09-.12-2.57 0-4.73-.15-7.13-1.11-13.93-2.87-58.23-1-89.48l1.42-24.94c.13-2.19.23-4.38.17-6.57-.1-1.81.58-5.97 3.9-6.65Z"
-            fill="none"
-            stroke="#000"
-            strokeMiterlimit="10"
-            style={styles.glowPath}
-          />
-        </svg>
       </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 241.62 179.76"
+        style={{ ...styles.tvOutline, ...styles.svgContainer }}
+
+      >
+        <path
+          d="M6.84 5.52s64.76-5.56 83-4.88c1.63.06 3.26.09 4.89.07 13.86-.18 71-.75 89.13 1.33l46.52 3.24s6.46-.86 6.68 13.16c0 0 6 80.06 3.52 99.51l-4.2 44.7a18.25 18.25 0 0 0-.57 4.3c-.15 2.37-1.82 7.27-12.83 7.65-2 .07-10.52.63-12.46.76-17.08 1.12-97.94 6.36-152.22 2.52L9.61 173.14s-6.2 1.52-7.06-30.76c0-.69 0-1.39-.05-2.09-.12-2.57 0-4.73-.15-7.13-1.11-13.93-2.87-58.23-1-89.48l1.42-24.94c.13-2.19.23-4.38.17-6.57-.1-1.81.58-5.97 3.9-6.65Z"
+          fill="none"
+          stroke="#000"
+          strokeMiterlimit="10"
+          style={styles.glowPath}
+        />
+      </svg>
     </div>
   )
 }
